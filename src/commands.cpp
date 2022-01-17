@@ -165,11 +165,11 @@ void onPlayerChat(Mod::PlayerEntry const &entry, std::string &name, std::string 
 	bool isUsingTeamChat = false;
 
 	// check if prefix is used then erase it from the chat message
-	if (content.compare(0, prefix1.size(), prefix1) == 0) {
+	if (content.compare(0, prefix1.length(), prefix1) == 0) {
 		content.erase(0, prefix1.length());
 		isUsingTeamChat = true;
 	}
-	else if (content.compare(0, prefix2.size(), prefix2) == 0) {
+	else if (content.compare(0, prefix2.length(), prefix2) == 0) {
 		content.erase(0, prefix2.length());
 		isUsingTeamChat = true;
 	}
