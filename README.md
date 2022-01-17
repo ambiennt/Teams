@@ -1,11 +1,11 @@
 # Teams
-### Set, list, and communicate with player teams in BDS + ElementZero 1.16.20
+# Set, list, and communicate with player teams in BDS + ElementZero 1.16.20
 
 ## Usage:
-# /team \<action: teamAction\> [player: target] [teamNumber: int]
-# /teamlist
-# ?teamwhisper [message: string]
-# ?tw [message: string]
+### /team \<action: teamAction\> [player: target] [teamNumber: int]
+### /teamlist
+### ?teamwhisper [message: string]
+### ?tw [message: string]
 
 With the /team command, you can either set or clear a player's team. When players are on the same team, they cannot damage one another, and have access to the teamwhisper commands to communicate with one another.
 
