@@ -4,7 +4,7 @@ class TeamCommand : public Command {
 public:
 	TeamCommand() { selector.setIncludeDeadPlayers(true); }
 
-	enum class TeamAction { Set, Clear } action = TeamAction::Set;
+	enum class TeamAction { Set, Reset } action = TeamAction::Set;
 	CommandSelector<Player> selector;
 	int32_t teamNumber = 1;
 
@@ -25,7 +25,7 @@ public:
 				teamStatusStr += "set to §a" + std::to_string(teamNumber) + "§r";
 				break;
 			}
-			case TeamAction::Clear: {
+			case TeamAction::Reset: {
 				playerTeams.erase(xuid);
 				teamStatusStr += "reset";
 				break;
@@ -50,8 +50,7 @@ public:
 			return output.error("Team number must be at least 1");
 		}
 
-		auto* gr = &LocateService<Level>()->getGameRules();
-		bool sendCommandFeedback = gr->getBool(GameRulesIndex::SendCommandFeedback);
+		bool sendCommandFeedback = (output.type != CommandOutputType::NoFeedback);
 
 		auto& db = Mod::PlayerDatabase::GetInstance();
 
@@ -66,7 +65,7 @@ public:
 				outputStrStart += "set the team number to " + std::to_string(teamNumber);
 				break;
 			}
-			case TeamAction::Clear: {
+			case TeamAction::Reset: {
 				outputStrStart += "reset the team number";
 				break;
 			}
@@ -80,15 +79,23 @@ public:
 		registry->registerCommand(
 			"team", "Sets a player's team.", CommandPermissionLevel::GameMasters, CommandFlagUsage, CommandFlagNone);
 
-		commands::addEnum<TeamAction>(registry, "teamAction", {
-			{ "set", TeamAction::Set },
-			{ "clear", TeamAction::Clear }
+		commands::addEnum<TeamAction>(registry, "setTeamAction", {
+			{ "set", TeamAction::Set }
+		});
+
+		commands::addEnum<TeamAction>(registry, "resetTeamAction", {
+			{ "reset", TeamAction::Reset }
 		});
 
 		registry->registerOverload<TeamCommand>("team",
-			mandatory<CommandParameterDataType::ENUM>(&TeamCommand::action, "action", "teamAction"),
-			optional(&TeamCommand::selector, "player"),
-			optional(&TeamCommand::teamNumber, "teamNumber")
+			mandatory<CommandParameterDataType::ENUM>(&TeamCommand::action, "set", "setTeamAction"),
+			mandatory(&TeamCommand::selector, "player"),
+			mandatory(&TeamCommand::teamNumber, "teamNumber")
+		);
+
+		registry->registerOverload<TeamCommand>("team",
+			mandatory<CommandParameterDataType::ENUM>(&TeamCommand::action, "reset", "resetTeamAction"),
+			optional(&TeamCommand::selector, "player")
 		);
 	}
 };
@@ -104,7 +111,7 @@ public:
 
 		for (const auto& pair : playerTeams) {
 			if (pair.second > 0) { // don't include team 0
-				reverseTeamMap[pair.second].push_back(pair.first);
+				reverseTeamMap[pair.second].emplace_back(pair.first); // push_back
 			}
 		}
 
@@ -195,7 +202,7 @@ void onPlayerChat(Mod::PlayerEntry const &entry, std::string &name, std::string 
 
 		for (const auto& pair : playerTeams) {
 			if (pair.second > 0) {
-				reverseTeamMap[pair.second].push_back(pair.first);
+				reverseTeamMap[pair.second].emplace_back(pair.first); // emplace_back
 			}
 		}
 
