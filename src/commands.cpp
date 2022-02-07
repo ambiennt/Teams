@@ -14,7 +14,7 @@ public:
 		if (!it) return;
 		uint64_t xuid = it->xuid;
 
-		if (xuid <= 0) return output.error(
+		if (xuid == 0) return output.error(
 			it->name + "'s team change could not be processed because they are using an offline account");
 
 		std::string teamStatusStr = "Your team number has been ";
@@ -110,9 +110,7 @@ public:
 		std::string listStr;
 
 		for (const auto& pair : playerTeams) {
-			if (pair.second > 0) { // don't include team 0
-				reverseTeamMap[pair.second].emplace_back(pair.first); // push_back
-			}
+			reverseTeamMap[pair.second].emplace_back(pair.first); // push_back
 		}
 
 		for (const auto &thisList : reverseTeamMap) {
@@ -186,37 +184,36 @@ void onPlayerChat(Mod::PlayerEntry const &entry, std::string &name, std::string 
 		std::string tokenStr = "Overwritten by ?teamwhisper";
 		auto& db = Mod::PlayerDatabase::GetInstance();
 		std::unordered_map<int32_t, std::vector<uint64_t>> reverseTeamMap;
-		int32_t selfTeamNum = playerTeams[entry.xuid];
 
-		if (selfTeamNum <= 0) {
+		auto it1 = playerTeams.find(entry.xuid);
+		if (it1 == playerTeams.end()) {
 			std::string errorStr = "§cThe whisper could not not be sent because you are not an a team§r";
 			auto error = TextPacket::createTextPacket<TextPacketType::SystemMessage>(errorStr);
 			entry.player->sendNetworkPacket(error);
 			return token(tokenStr);
 		}
 
+		int32_t selfTeamNum = it1->second;
 		std::string whisperPrefix = "§b[Team " + std::to_string(selfTeamNum) + "]§r";
 
 		auto whisperPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
 			name, whisperPrefix + " <" + name + "> " + content, std::to_string(entry.xuid));
 
 		for (const auto& pair : playerTeams) {
-			if (pair.second > 0) {
-				reverseTeamMap[pair.second].emplace_back(pair.first); // emplace_back
-			}
+			reverseTeamMap[pair.second].emplace_back(pair.first); // push_back
 		}
 
 		for (const auto& thisXuid : reverseTeamMap[selfTeamNum]) {
 
-			auto it = db.Find(thisXuid);
-			if (it) {
+			auto it2 = db.Find(thisXuid);
+			if (it2) {
 
-				it->player->sendNetworkPacket(whisperPkt);
+				it2->player->sendNetworkPacket(whisperPkt);
 
 				if (thisXuid != entry.xuid) { // so the sender doesn't hear the whisper sound effect
 
-					PlaySoundPacket soundPkt("random.orb", it->player->getPos(), 0.375f);
-					it->player->sendNetworkPacket(soundPkt);
+					PlaySoundPacket soundPkt("random.orb", it2->player->getPos(), 0.375f);
+					it2->player->sendNetworkPacket(soundPkt);
 				}
 			}
 		}

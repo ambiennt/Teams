@@ -20,10 +20,10 @@ THook(bool, "?isInvulnerableTo@Player@@UEBA_NAEBVActorDamageSource@@@Z", Player 
 		if (!attacker) return original(player, source);
 		auto& db = Mod::PlayerDatabase::GetInstance();
 
-		int32_t selfTeamNum = playerTeams[db.Find(player)->xuid];
-		int32_t attackerTeamNum = playerTeams[db.Find(attacker)->xuid];
+		uint64_t selfXuid = db.Find(player)->xuid;
+		uint64_t attackerXuid = db.Find(attacker)->xuid;
 
-		if ((selfTeamNum > 0) && (selfTeamNum == attackerTeamNum)) return true;
+		if (isOnSameTeam(selfXuid, attackerXuid)) return true;
 	}
 	return original(player, source);
 }
@@ -37,10 +37,10 @@ THook(void, "?attack@GameMode@@UEAA_NAEAVActor@@@Z", GameMode *mode, Actor &acto
 		auto attacker = (Player*)(&actor);
 		auto& db = Mod::PlayerDatabase::GetInstance();
 
-		int32_t selfTeamNum = playerTeams[db.Find(player)->xuid];
-		int32_t attackerTeamNum = playerTeams[db.Find(attacker)->xuid];
+		uint64_t selfXuid = db.Find(player)->xuid;
+		uint64_t attackerXuid = db.Find(attacker)->xuid;
 
-		if ((selfTeamNum > 0) && (selfTeamNum == attackerTeamNum)) return;
+		if (isOnSameTeam(selfXuid, attackerXuid)) return;
 	}
 	original(mode, actor);
 }

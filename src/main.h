@@ -21,3 +21,14 @@ void initializeTeamCommands(CommandRegistry *registry);
 void onPlayerChat(Mod::PlayerEntry const &entry, std::string &name, std::string &content, Mod::CallbackToken<std::string> &token);
 
 extern std::unordered_map<uint64_t, int32_t> playerTeams; // xuid and team number
+
+inline bool isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid) {
+
+	auto it1 = playerTeams.find(thisXuid);
+	if (it1 == playerTeams.end()) return false;
+
+	auto it2 = playerTeams.find(thatXuid);
+	if (it2 == playerTeams.end()) return false;
+
+	return (it1->second == it2->second);
+}
