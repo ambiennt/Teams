@@ -76,14 +76,15 @@ public:
 
 	static void setup(CommandRegistry *registry) {
 		using namespace commands;
+
 		registry->registerCommand(
 			"team", "Sets a player's team.", CommandPermissionLevel::GameMasters, CommandFlagUsage, CommandFlagNone);
 
-		commands::addEnum<TeamAction>(registry, "setTeamAction", {
+		addEnum<TeamAction>(registry, "setTeamAction", {
 			{ "set", TeamAction::Set }
 		});
 
-		commands::addEnum<TeamAction>(registry, "resetTeamAction", {
+		addEnum<TeamAction>(registry, "resetTeamAction", {
 			{ "reset", TeamAction::Reset }
 		});
 
@@ -110,7 +111,7 @@ public:
 		std::string listStr;
 
 		for (const auto& pair : playerTeams) {
-			reverseTeamMap[pair.second].emplace_back(pair.first); // push_back
+			reverseTeamMap[pair.second].emplace_back(pair.first);
 		}
 
 		for (const auto &thisList : reverseTeamMap) {
@@ -152,6 +153,7 @@ public:
 
 	static void setup(CommandRegistry *registry) {
 		using namespace commands;
+		
 		registry->registerCommand(
 			"teamlist", "Outputs a list of all player teams.", CommandPermissionLevel::Any, CommandFlagUsage, CommandFlagNone);
 		registry->registerOverload<TeamListCommand>("teamlist");
@@ -200,7 +202,7 @@ void onPlayerChat(Mod::PlayerEntry const &entry, std::string &name, std::string 
 			name, whisperPrefix + " <" + name + "> " + content, std::to_string(entry.xuid));
 
 		for (const auto& pair : playerTeams) {
-			reverseTeamMap[pair.second].emplace_back(pair.first); // push_back
+			reverseTeamMap[pair.second].emplace_back(pair.first);
 		}
 
 		for (const auto& thisXuid : reverseTeamMap[selfTeamNum]) {
@@ -211,7 +213,6 @@ void onPlayerChat(Mod::PlayerEntry const &entry, std::string &name, std::string 
 				it2->player->sendNetworkPacket(whisperPkt);
 
 				if (thisXuid != entry.xuid) { // so the sender doesn't hear the whisper sound effect
-
 					PlaySoundPacket soundPkt("random.orb", it2->player->getPos(), 0.375f);
 					it2->player->sendNetworkPacket(soundPkt);
 				}
