@@ -38,7 +38,7 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 	if (cmdExecutor->xuid != 0) {
 		target.EZPlayerFields->mLastWhisperMessagerXuid = cmdExecutor->xuid;
 	}
-	
+
 	target.sendNetworkPacket(toTargetWhisperPkt);
 	target.sendNetworkPacket(toTargetSoundPkt);
 	cmdExecutor->player->sendNetworkPacket(toSelfWhisperPkt);
@@ -62,14 +62,14 @@ void WhisperCommand::setup(CommandRegistry *registry) {
 
 	registry->registerOverload<WhisperCommand>(cmdName,
 		CommandParameterData(
-     		Mod::CommandSupport::GetParameterTypeId<std::string>(),
-      		CommandRegistry::getParseFn<std::string>(),
+	 		Mod::CommandSupport::GetParameterTypeId<std::string>(),
+	  		CommandRegistry::getParseFn<std::string>(),
 			"player",
-      		CommandParameterDataType::SOFTENUM,
-      		WHISPER_COMMAND_SOFTENUM_NAME,
-      		getOffset(&WhisperCommand::specificName),
-      		false,
-      		-1
+	  		CommandParameterDataType::SOFTENUM,
+	  		WHISPER_COMMAND_SOFTENUM_NAME,
+	  		getOffset(&WhisperCommand::specificName),
+	  		false,
+	  		-1
  		),
 		mandatory(&WhisperCommand::msg, "content")
 	);

@@ -1,7 +1,7 @@
 #include "../main.h"
 
 void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
-	
+
 	output.type = CommandOutputType::Normal;
 
 	std::unordered_map<int32_t, std::vector<uint64_t>> reverseTeamMap;
@@ -45,7 +45,7 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 void TeamListCommand::setup(CommandRegistry *registry) {
 
 	std::string cmdName("teamlist");
-	
+
 	registry->registerCommand(cmdName, "Outputs a list of all player teams.",
 		CommandPermissionLevel::Any, CommandFlagUsage, CommandFlagNone);
 	registry->registerOverload<TeamListCommand>(cmdName);
