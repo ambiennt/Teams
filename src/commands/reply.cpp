@@ -2,8 +2,9 @@
 
 void ReplyCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 
-	auto& cmdExecutor = *(Player*)(origin.getEntity());
-	auto lastWhisperMessager = TeamUtils::db.Find(cmdExecutor.EZPlayerFields->mLastWhisperMessagerXuid);
+	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
+	if (!cmdExecutor) return;
+	auto lastWhisperMessager = PLAYER_DB.Find(cmdExecutor->player->mEZPlayer->mLastWhisperMessagerXuid);
 
 	if (!lastWhisperMessager || (lastWhisperMessager->xuid == 0)) {
 		return output.error(
@@ -18,17 +19,18 @@ void ReplyCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 	auto toSelfReplyPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
 		"§e(To §a" + lastWhisperMessager->name + "§e): " + actualMsg);
 	auto toTargetReplyPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
-		"§e(From §a" + cmdExecutor.mPlayerName + "§e): " + actualMsg);
+		"§e(From §a" + cmdExecutor->name + "§e): " + actualMsg);
 	PlaySoundPacket toTargetSoundPkt(std::string("random.orb"), lastWhisperMessager->player->getBlockPos(), 0.375f);
 
 	lastWhisperMessager->player->sendNetworkPacket(toTargetReplyPkt);
 	lastWhisperMessager->player->sendNetworkPacket(toTargetSoundPkt);
-	cmdExecutor.sendNetworkPacket(toSelfReplyPkt);
+	cmdExecutor->player->sendNetworkPacket(toSelfReplyPkt);
 
 
 
 
-	LOGI("[%s -> %s] %s") % cmdExecutor.mPlayerName % lastWhisperMessager->name % actualMsg;
+	//LOGI("[%s -> %s] %s") % cmdExecutor->name % lastWhisperMessager->name % actualMsg;
+	Mod::Chat::logChat(cmdExecutor.value(), actualMsg, &lastWhisperMessager->name);
 }
 
 void ReplyCommand::setup(CommandRegistry *registry) {

@@ -8,14 +8,14 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 		return output.error("This command can only be executed by players");
 	}
 
-	auto cmdExecutor = TeamUtils::db.Find((Player*)origin.getEntity());
+	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
 	if (!cmdExecutor) return;
 
 	if (this->specificName == cmdExecutor->name) {
 		return output.error("You cannot send a whisper to yourself");
 	}
 
-	auto it = TeamUtils::db.Find(this->specificName);
+	auto it = PLAYER_DB.Find(this->specificName);
 	if (!it) {
 		return output.error("No player was found with the name: \"" + this->specificName + "\"");
 	}
@@ -36,7 +36,7 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 	PlaySoundPacket toTargetSoundPkt(std::string("random.orb"), target.getBlockPos(), 0.375f);
 
 	if (cmdExecutor->xuid != 0) {
-		target.EZPlayerFields->mLastWhisperMessagerXuid = cmdExecutor->xuid;
+		target.mEZPlayer->mLastWhisperMessagerXuid = cmdExecutor->xuid;
 	}
 
 	target.sendNetworkPacket(toTargetWhisperPkt);
@@ -46,7 +46,8 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 
 
 
-	LOGI("[%s -> %s] %s") % cmdExecutor->name % target.mPlayerName % actualMsg;
+	//LOGI("[%s -> %s] %s") % cmdExecutor->name % target.mPlayerName % actualMsg;
+	Mod::Chat::logChat(cmdExecutor.value(), actualMsg, &target.mPlayerName);
 }
 
 void WhisperCommand::setup(CommandRegistry *registry) {

@@ -16,7 +16,7 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 
 
 
-	auto cmdExecutor = TeamUtils::db.Find((Player*)origin.getEntity());
+	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
 	if (!cmdExecutor) return;
 
 	std::unordered_map<int32_t, std::vector<uint64_t>> reverseTeamMap;
@@ -41,7 +41,7 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 
 	for (const auto& thisXuid : reverseTeamMap[selfTeamNum]) {
 
-		auto it2 = TeamUtils::db.Find(thisXuid);
+		auto it2 = PLAYER_DB.Find(thisXuid);
 		if (it2) {
 
 			it2->player->sendNetworkPacket(whisperPkt);
@@ -55,8 +55,9 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 
 
 
-
-	LOGI("[%s -> Team %d] %s") % cmdExecutor->name % selfTeamNum % actualMsg;
+	//LOGI("[%s -> Team %d] %s") % cmdExecutor->name % selfTeamNum % actualMsg;
+	std::string recipient("(TEAM WHISPER) Team " + std::to_string(selfTeamNum));
+	Mod::Chat::logChat(cmdExecutor.value(), actualMsg, &recipient);
 }
 
 void TeamWhisperCommand::setup(CommandRegistry *registry) {

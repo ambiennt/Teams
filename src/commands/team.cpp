@@ -2,7 +2,7 @@
 
 void TeamCommand::handleTeamAction(Player *player, CommandOutput &output, bool sendCommandFeedback) {
 
-	auto it = TeamUtils::db.Find(player);
+	auto it = PLAYER_DB.Find(player);
 	if (!it) return;
 	uint64_t xuid = it->xuid;
 

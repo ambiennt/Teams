@@ -3,8 +3,8 @@
 #include <base/log.h>
 #include <base/playerdb.h>
 #include <hook.h>
+#include <base/ezplayer.h>
 #include <Level/Level.h>
-#include <Level/GameRules.h>
 #include <Actor/Player.h>
 #include <Actor/GameMode.h>
 #include <Actor/ActorType.h>
@@ -12,6 +12,7 @@
 #include <Packet/TextPacket.h>
 #include <Packet/PlaySoundPacket.h>
 #include <mods/CommandSupport.h>
+#include <mods/ChatAPI.h>
 
 class TeamCommand : public Command {
 public:
@@ -78,7 +79,6 @@ public:
 namespace TeamUtils {
 
 extern std::unordered_map<uint64_t, int32_t> playerTeams; // xuid and team number
-extern Mod::PlayerDatabase& db;
 
 void initializeTeamCommands(CommandRegistry *registry);
 bool isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid);
@@ -87,6 +87,11 @@ void updateWhisperCommandSoftEnum();
 } // namespace TeamUtils
 
 
+
+
+
+
+#define PLAYER_DB Mod::PlayerDatabase::GetInstance()
 
 
 

@@ -18,7 +18,6 @@ void PostInit() {}
 namespace TeamUtils {
 
 std::unordered_map<uint64_t, int32_t> playerTeams;
-Mod::PlayerDatabase& db = Mod::PlayerDatabase::GetInstance();
 
 void initializeTeamCommands(CommandRegistry *registry) {
 	TeamCommand::setup(registry);
@@ -69,8 +68,8 @@ TInstanceHook(bool, "?isInvulnerableTo@Player@@UEBA_NAEBVActorDamageSource@@@Z",
 		auto attacker = (Player*)(this->mLevel->fetchEntity(source.getEntityUniqueID(), false));
 		if (!attacker) return original(this, source);
 
-		uint64_t targetXuid = TeamUtils::db.Find(this)->xuid;
-		uint64_t attackerXuid = TeamUtils::db.Find(attacker)->xuid;
+		uint64_t targetXuid = PLAYER_DB.Find(this)->xuid;
+		uint64_t attackerXuid = PLAYER_DB.Find(attacker)->xuid;
 
 		if (TeamUtils::isOnSameTeam(targetXuid, attackerXuid)) return true;
 	}
@@ -82,8 +81,8 @@ TInstanceHook(void, "?attack@GameMode@@UEAA_NAEAVActor@@@Z", GameMode, Actor &ta
 
 	if (target.isInstanceOfPlayer()) {
 
-		uint64_t attackerXuid = TeamUtils::db.Find(this->mPlayer)->xuid;
-		uint64_t targetXuid = TeamUtils::db.Find((Player*)&target)->xuid;
+		uint64_t attackerXuid = PLAYER_DB.Find(this->mPlayer)->xuid;
+		uint64_t targetXuid = PLAYER_DB.Find((Player*)&target)->xuid;
 
 		if (TeamUtils::isOnSameTeam(attackerXuid, targetXuid)) return;
 	}

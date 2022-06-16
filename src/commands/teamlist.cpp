@@ -17,12 +17,12 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 
 		for (const auto& thisXuid : thisList.second) {
 
-			auto it = TeamUtils::db.Find(thisXuid);
+			auto it = PLAYER_DB.Find(thisXuid);
 			if (it) {
 				listStr += it->name + ", ";
 			}
 			else {
-				listStr += TeamUtils::db.FindOffline(thisXuid)->name + " §c[offline]§r, ";
+				listStr += PLAYER_DB.FindOffline(thisXuid)->name + " §c[offline]§r, ";
 			}
 		}
 
