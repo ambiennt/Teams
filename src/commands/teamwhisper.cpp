@@ -5,12 +5,14 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 	output.type = CommandOutputType::Normal;
 
 	if (origin.getOriginType() != CommandOriginType::Player) {
-		return output.error("This command can only be executed by players");
+		output.error("This command can only be executed by players");
+		return;
 	}
 
 	std::string actualMsg = this->msg.getMessage(origin);
 	if (actualMsg.length() <= 0) {
-		return output.error("Whisper messages must be at least 1 character long");
+		output.error("Whisper messages must be at least 1 character long");
+		return;
 	}
 
 
@@ -19,11 +21,10 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
 	if (!cmdExecutor) return;
 
-	std::unordered_map<int32_t, std::vector<uint64_t>> reverseTeamMap;
-
-	auto it1 = TeamUtils::playerTeams.find(cmdExecutor->xuid);
-	if (it1 == TeamUtils::playerTeams.end()) {
-		return output.error("The whisper could not not be sent because you are not an a team");
+	auto it1 = TeamUtils::xuidToTeamMap.find(cmdExecutor->xuid);
+	if (it1 == TeamUtils::xuidToTeamMap.end()) {
+		output.error("The whisper could not not be sent because you are not an a team");
+		return;
 	}
 
 	int32_t selfTeamNum = it1->second;
@@ -35,18 +36,14 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 	soundPkt.mName = std::string("random.orb");
 	soundPkt.mVolume = 0.375f;
 
-	for (const auto& pair : TeamUtils::playerTeams) {
-		reverseTeamMap[pair.second].push_back(pair.first);
-	}
+	for (const auto& currXuid : TeamUtils::teamToXuidMap[selfTeamNum]) {
 
-	for (const auto& thisXuid : reverseTeamMap[selfTeamNum]) {
-
-		auto it2 = PLAYER_DB.Find(thisXuid);
+		auto it2 = PLAYER_DB.Find(currXuid);
 		if (it2) {
 
 			it2->player->sendNetworkPacket(whisperPkt);
 
-			if (thisXuid != cmdExecutor->xuid) { // so the sender doesn't hear the whisper sound effect
+			if (currXuid != cmdExecutor->xuid) { // so the sender doesn't hear the whisper sound effect
 				soundPkt.mPos = it2->player->getBlockPos();
 				it2->player->sendNetworkPacket(soundPkt);
 			}

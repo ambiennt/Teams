@@ -7,13 +7,15 @@ void ReplyCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 	auto lastWhisperMessager = PLAYER_DB.Find(cmdExecutor->player->mEZPlayer->mLastWhisperMessagerXuid);
 
 	if (!lastWhisperMessager || (lastWhisperMessager->xuid == 0)) {
-		return output.error(
+		output.error(
 			"Reply failed! Either you do not have anyone to reply to, the last person who whispered to you is offline, or they are using an offline account");
+          return;
 	}
 
 	std::string actualMsg = this->msg.getMessage(origin);
 	if (actualMsg.length() <= 0) {
-		return output.error("Reply messages must be at least 1 character long");
+		output.error("Reply messages must be at least 1 character long");
+		return;
 	}
 
 	auto toSelfReplyPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(

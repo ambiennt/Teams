@@ -7,20 +7,29 @@ void TeamCommand::handleTeamAction(Player *player, CommandOutput &output, bool s
 	uint64_t xuid = it->xuid;
 
 	if (xuid == 0) {
-		return output.error(
-			it->name + "'s team change could not be processed because they are using an offline account");
+		output.error(it->name +
+			"'s team change could not be processed because they are using an offline account");
+		return;	
 	}
 
 	std::string teamStatusStr("Your team number has been ");
 
 	switch (this->action) {
 		case TeamAction::SET: {
-			TeamUtils::playerTeams[xuid] = this->teamNumber;
+
+			// add xuid into main map
+			TeamUtils::xuidToTeamMap[xuid] = this->teamNumber;
+
+			// update reverse team map
+			for (const auto &pair : TeamUtils::xuidToTeamMap) {
+				TeamUtils::teamToXuidMap[pair.second].insert(pair.first);
+			}
+
 			teamStatusStr += "set to §a" + std::to_string(this->teamNumber) + "§r";
 			break;
 		}
 		case TeamAction::RESET: {
-			TeamUtils::playerTeams.erase(xuid);
+			TeamUtils::xuidToTeamMap.erase(xuid);
 			teamStatusStr += "reset";
 			break;
 		}
@@ -37,11 +46,13 @@ void TeamCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 
 	auto selectedEntities = this->selector.results(origin);
 	if (selectedEntities.empty()) {
-		return output.error("No targets matched selector");
+		output.error("No targets matched selector");
+		return;
 	}
 
 	if ((this->action == TeamAction::SET) && (this->teamNumber < 1)) {
-		return output.error("Team number must be at least 1");
+		output.error("Team number must be at least 1");
+		return;
 	}
 
 	bool sendCommandFeedback = (output.type != CommandOutputType::NoFeedback);
@@ -51,7 +62,7 @@ void TeamCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 	}
 
 	int32_t resultCount = selectedEntities.count();
-	std::string outputStrStart("Successfully ");
+	std::string outputStrStart{"Successfully "};
 	switch (this->action) {
 		case TeamAction::SET: {
 			outputStrStart += "set the team number to " + std::to_string(this->teamNumber);

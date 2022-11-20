@@ -4,25 +4,27 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 
 	output.type = CommandOutputType::Normal;
 
-	std::unordered_map<int32_t, std::vector<uint64_t>> reverseTeamMap;
-	std::string listStr;
-
-	for (const auto& pair : TeamUtils::playerTeams) {
-		reverseTeamMap[pair.second].push_back(pair.first);
+	if (TeamUtils::teamToXuidMap.empty()) {
+		output.error("No teams exist in the current session");
+		return;
 	}
 
-	for (const auto& thisList : reverseTeamMap) {
+	std::string listStr{};
+	for (const auto& xuidList : TeamUtils::teamToXuidMap) {
 
-		listStr += "\n§bTeam " + std::to_string(thisList.first) + "§r: ";
+		listStr += "\n§bTeam " + std::to_string(xuidList.first) + "§r: ";
 
-		for (const auto& thisXuid : thisList.second) {
+		for (const auto &thisXuid : xuidList.second) {
 
-			auto it = PLAYER_DB.Find(thisXuid);
-			if (it) {
-				listStr += it->name + ", ";
+			auto onlineIt = PLAYER_DB.Find(thisXuid);
+			if (onlineIt) {
+				listStr += onlineIt->name + ", ";
 			}
 			else {
-				listStr += PLAYER_DB.FindOffline(thisXuid)->name + " §c[offline]§r, ";
+				auto offlineIt = PLAYER_DB.FindOffline(thisXuid);
+				if (offlineIt) { // this should never be null but lets be safe
+					listStr += offlineIt->name + " §c[offline]§r, ";
+				}
 			}
 		}
 
@@ -33,10 +35,6 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 		if (listStr.substr(listStr.length() - 2) == ", ") {
 			listStr.erase(listStr.length() - 2, 2);
 		}
-	}
-
-	if (listStr.empty()) {
-		return output.error("No teams exist in the current session");
 	}
 
 	output.success(listStr);

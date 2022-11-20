@@ -15,11 +15,7 @@ void PostInit() {}
 
 
 
-namespace TeamUtils {
-
-std::unordered_map<uint64_t, int32_t> playerTeams;
-
-void initializeTeamCommands(CommandRegistry *registry) {
+void TeamUtils::initializeTeamCommands(CommandRegistry *registry) {
 	TeamCommand::setup(registry);
 	TeamListCommand::setup(registry);
 	TeamWhisperCommand::setup(registry);
@@ -27,32 +23,30 @@ void initializeTeamCommands(CommandRegistry *registry) {
 	ReplyCommand::setup(registry);
 }
 
-bool isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid) {
+bool TeamUtils::isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid) {
 
-	auto it1 = playerTeams.find(thisXuid);
-	if (it1 == playerTeams.end()) return false;
+	auto it1 = xuidToTeamMap.find(thisXuid);
+	if (it1 == xuidToTeamMap.end()) return false;
 
-	auto it2 = playerTeams.find(thatXuid);
-	if (it2 == playerTeams.end()) return false;
+	auto it2 = xuidToTeamMap.find(thatXuid);
+	if (it2 == xuidToTeamMap.end()) return false;
 
 	return (it1->second == it2->second);
 }
 
-void updateWhisperCommandSoftEnum() {
+void TeamUtils::updateWhisperCommandSoftEnum() {
 
 	Mod::PlayerDatabase::GetInstance().AddListener(SIG("joined"), [](Mod::PlayerEntry const &entry) {
 		LocateService<CommandRegistry>()->addSoftEnumValues(
-			std::string(WhisperCommand::WHISPER_COMMAND_SOFTENUM_NAME), {entry.player->mPlayerName});
+			std::string(WhisperCommand::WHISPER_COMMAND_SOFTENUM_NAME), {entry.name});
 	});
 
 	Mod::PlayerDatabase::GetInstance().AddListener(SIG("left"), [](Mod::PlayerEntry const &entry) {
 		LocateService<CommandRegistry>()->removeSoftEnumValues(
-			std::string(WhisperCommand::WHISPER_COMMAND_SOFTENUM_NAME), {entry.player->mPlayerName});
+			std::string(WhisperCommand::WHISPER_COMMAND_SOFTENUM_NAME), {entry.name});
 	});
 
 }
-
-} // namespace TeamUtils
 
 
 

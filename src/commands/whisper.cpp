@@ -5,25 +5,29 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 	output.type = CommandOutputType::Normal;
 
 	if (origin.getOriginType() != CommandOriginType::Player) {
-		return output.error("This command can only be executed by players");
+		output.error("This command can only be executed by players");
+		return;
 	}
 
 	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
 	if (!cmdExecutor) return;
 
 	if (this->specificName == cmdExecutor->name) {
-		return output.error("You cannot send a whisper to yourself");
+		output.error("You cannot send a whisper to yourself");
+		return;
 	}
 
 	auto it = PLAYER_DB.Find(this->specificName);
 	if (!it) {
-		return output.error("No player was found with the name: \"" + this->specificName + "\"");
+		output.error("No player was found with the name: \"" + this->specificName + "\"");
+		return;
 	}
 	auto& target = *it->player;
 
 	std::string actualMsg = this->msg.getMessage(origin);
 	if (actualMsg.length() <= 0) {
-		return output.error("Whisper messages must be at least 1 character long");
+		output.error("Whisper messages must be at least 1 character long");
+		return;
 	}
 
 
