@@ -10,7 +10,7 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 	}
 
 	// only show health and position to the teammates of the player executor
-	// if command origin is not player, show all players' health and positions
+	// if command origin is not player or player doesn't have a team, don't show that info for anyone
 	std::optional<int32_t> selfTeamNum{};
 	if (origin.getOriginType() == CommandOriginType::Player) {
 		auto playerExecutor = reinterpret_cast<Player*>(origin.getEntity());
