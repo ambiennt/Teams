@@ -9,6 +9,22 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 		return;
 	}
 
+	// only show health and position to the teammates of the player executor
+	// if command origin is not player, show all players' health and positions
+	std::optional<int32_t> selfTeamNum{};
+	if (origin.getOriginType() == CommandOriginType::Player) {
+		auto playerExecutor = reinterpret_cast<Player*>(origin.getEntity());
+		if (playerExecutor) {
+			auto dbIt = PLAYER_DB.Find(playerExecutor);
+			if (dbIt.has_value()) {
+				auto mapIt = TeamUtils::xuidToTeamMap.find(dbIt->xuid);
+				if (mapIt != TeamUtils::xuidToTeamMap.end()) {
+					selfTeamNum = mapIt->second;
+				}
+			}
+		}
+	}
+
 	std::string listStr{};
 	for (const auto& xuidList : TeamUtils::teamToXuidMap) {
 
@@ -18,7 +34,13 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 
 			auto onlineIt = PLAYER_DB.Find(thisXuid);
 			if (onlineIt) {
-				listStr += onlineIt->name + ", ";
+				if (selfTeamNum.has_value() && (selfTeamNum.value() == xuidList.first)) {
+					listStr += TeamUtils::getFormattedHealthAndPosString(*(onlineIt->player));
+				}
+				else {
+					listStr += onlineIt->name;
+				}
+				listStr += ", ";
 			}
 			else {
 				auto offlineIt = PLAYER_DB.FindOffline(thisXuid);
@@ -42,9 +64,12 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 
 void TeamListCommand::setup(CommandRegistry *registry) {
 
-	std::string cmdName("teamlist");
+	std::string cmdName{"teamlist"};
 
+	// order is important! register the command, alias, then overload
 	registry->registerCommand(cmdName, "Outputs a list of all player teams.",
 		CommandPermissionLevel::Any, CommandFlagUsage, CommandFlagNone);
+	registry->registerAlias(cmdName, "tl");
+
 	registry->registerOverload<TeamListCommand>(cmdName);
 }

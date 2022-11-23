@@ -1,15 +1,15 @@
 #include "../main.h"
 
-void TeamCommand::handleTeamAction(Player *player, CommandOutput &output, bool sendCommandFeedback) {
+bool TeamCommand::handleTeamAction(Player *player, CommandOutput &output, bool sendCommandFeedback) {
 
 	auto it = PLAYER_DB.Find(player);
-	if (!it) return;
+	if (!it) return false;
 	uint64_t xuid = it->xuid;
 
 	if (xuid == 0) {
 		output.error(it->name +
 			"'s team change could not be processed because they are using an offline account");
-		return;	
+		return false;	
 	}
 
 	std::string teamStatusStr("Your team number has been ");
@@ -40,6 +40,8 @@ void TeamCommand::handleTeamAction(Player *player, CommandOutput &output, bool s
 		auto output = TextPacket::createTextPacket<TextPacketType::SystemMessage>(teamStatusStr);
 		player->sendNetworkPacket(output);
 	}
+
+	return true;
 }
 
 void TeamCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
@@ -57,11 +59,13 @@ void TeamCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 
 	bool sendCommandFeedback = (output.type != CommandOutputType::NoFeedback);
 
+	int32_t teamAddSuccessCount = 0;
 	for (auto player : selectedEntities) {
-		handleTeamAction(player, output, sendCommandFeedback);
+		if (this->handleTeamAction(player, output, sendCommandFeedback)) {
+			teamAddSuccessCount++;
+		}
 	}
 
-	int32_t resultCount = selectedEntities.count();
 	std::string outputStrStart{"Successfully "};
 	switch (this->action) {
 		case TeamAction::SET: {
@@ -74,13 +78,14 @@ void TeamCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 		}
 		default: break;
 	}
-	output.success(outputStrStart + " for " + std::to_string(resultCount) + std::string((resultCount == 1) ? " player" : " players"));
+	
+	output.success(outputStrStart + " for " + std::to_string(teamAddSuccessCount) + std::string((teamAddSuccessCount == 1) ? " player" : " players"));
 }
 
 void TeamCommand::setup(CommandRegistry *registry) {
 	using namespace commands;
 
-	std::string cmdName("team");
+	std::string cmdName{"team"};
 
 	registry->registerCommand(cmdName, "Sets a player's team.",
 		CommandPermissionLevel::GameMasters, CommandFlagUsage, CommandFlagNone);

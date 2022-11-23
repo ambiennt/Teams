@@ -38,7 +38,7 @@ void ReplyCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
 void ReplyCommand::setup(CommandRegistry *registry) {
 	using namespace commands;
 
-	std::string cmdName("reply");
+	std::string cmdName{"reply"};
 
 	registry->registerCommand(cmdName, "Sends a reply message to the last player who whispered to you.",
 		CommandPermissionLevel::Any, CommandFlagUsage, CommandFlagNone);

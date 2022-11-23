@@ -60,7 +60,7 @@ void TeamWhisperCommand::execute(CommandOrigin const &origin, CommandOutput &out
 void TeamWhisperCommand::setup(CommandRegistry *registry) {
 	using namespace commands;
 
-	std::string cmdName("teamwhisper");
+	std::string cmdName{"teamwhisper"};
 
 	// order is important! register the command, alias, then overload
 	registry->registerCommand(cmdName, "Sends a message to all players on your team.",

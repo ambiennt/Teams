@@ -57,7 +57,7 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 void WhisperCommand::setup(CommandRegistry *registry) {
 	using namespace commands;
 
-	std::string cmdName("whisper");
+	std::string cmdName{"whisper"};
 
 	registry->addSoftEnum(WHISPER_COMMAND_SOFTENUM_NAME, {});
 

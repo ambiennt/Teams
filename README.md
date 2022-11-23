@@ -6,6 +6,7 @@
 ### /team \<teamAction: reset\> [player: target]
 
 ### /teamlist
+### /tl
 
 ### /teamwhisper \<content: message\>
 ### /tw \<content: message\>
@@ -18,7 +19,7 @@
 
 With the /team command, you can either set or clear a player's team. When players are on the same team, they cannot damage one another, and have access to the /teamwhisper and /tw commands to communicate with one another.
 
-With the /teamlist command, any player, regardless of team or whether they are on a team, can see a list of all teams and corresponding player names. Offline player names will also show.
+With the /teamlist command, any player, regardless of team or whether they are on a team, can see a list of all teams and corresponding player names. Offline player names will also show. The /tl command is an alias for /teamlist.
 
 With the /teamwhisper command, players can conveniently send private messages to everyone else on the same team without operators seeing the message in-game (messages will still be logged to the console. The /tw command is an alias for /teamwhisper.
 

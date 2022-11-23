@@ -48,6 +48,22 @@ void TeamUtils::updateWhisperCommandSoftEnum() {
 
 }
 
+std::string TeamUtils::getFormattedHealthAndPosString(Player &player) {
+	int32_t currHealth = player.getHealthAsInt();
+	int32_t currAbsorption = player.getAbsorptionAsInt();
+
+	auto pos = player.getBlockPosGrounded();
+	std::string nametag{player.mPlayerName + " §7[" + std::to_string(pos.x) + ", " +
+		std::to_string(pos.y) + ", " + std::to_string(pos.z) + "] [" + std::to_string(currHealth)};
+
+	nametag += HEALTH_GLYPH;
+	if (currAbsorption > 0) {
+		nametag += " " + std::to_string(currAbsorption) + ABSORPTION_GLYPH;
+	}
+	nametag += "]§r";
+	return nametag;
+}
+
 
 
 

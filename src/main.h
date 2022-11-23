@@ -35,7 +35,7 @@ public:
 		this->selector.setIncludeDeadPlayers(true);
 	}
 
-	void handleTeamAction(Player *player, CommandOutput &output, bool sendCommandFeedback);
+	bool handleTeamAction(Player *player, CommandOutput &output, bool sendCommandFeedback);
 	virtual void execute(CommandOrigin const &origin, CommandOutput &output) override;
 	static void setup(CommandRegistry *registry);
 };
@@ -83,12 +83,17 @@ public:
 
 namespace TeamUtils {
 
+// yea i really need to make a single dll for all my uhc stuff because this code is redundant af...
+inline constexpr const char* HEALTH_GLYPH      = "\ue1fe"; // , glyph 0xE1FE
+inline constexpr const char* ABSORPTION_GLYPH  = "\ue1ff"; // , glyph 0xE1FF
+
 inline std::map<uint64_t, int32_t> xuidToTeamMap{}; // xuid to team number
 inline std::map<int32_t, std::set<uint64_t>> teamToXuidMap{}; // team number to list of xuids
 
 void initializeTeamCommands(CommandRegistry *registry);
 bool isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid);
 void updateWhisperCommandSoftEnum();
+std::string getFormattedHealthAndPosString(Player &player);
 
 } // namespace TeamUtils
 
