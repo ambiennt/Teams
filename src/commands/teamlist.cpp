@@ -49,14 +49,15 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 				}
 			}
 		}
+	}
 
-		// remove extra characters, "\n" in the front and ", " in the back
-		if (listStr.front() == '\n') {
-			listStr.erase(0, 1);
-		}
-		if (listStr.substr(listStr.length() - 2) == ", ") {
-			listStr.erase(listStr.length() - 2, 2);
-		}
+	// remove extra characters, "\n" in the front and ", " in the back
+	if (listStr.front() == '\n') {
+		listStr.erase(0, 1);
+	}
+
+	if (listStr.substr(listStr.length() - 2) == ", ") {
+		listStr.erase(listStr.length() - 2, 2);
 	}
 
 	output.success(listStr);
