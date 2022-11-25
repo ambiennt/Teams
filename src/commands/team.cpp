@@ -7,29 +7,50 @@ bool TeamCommand::handleTeamAction(Player *player, CommandOutput &output, bool s
 	uint64_t xuid = it->xuid;
 
 	if (xuid == 0) {
-		output.error(it->name +
-			"'s team change could not be processed because they are using an offline account");
+		output.error(it->name + "'s team change could not be processed because they are using an offline account");
 		return false;	
 	}
 
-	std::string teamStatusStr("Your team number has been ");
+	std::string teamStatusStr{"Your team number has been "};
 
 	switch (this->action) {
 		case TeamAction::SET: {
 
-			// add xuid into main map
-			TeamUtils::xuidToTeamMap[xuid] = this->teamNumber;
+			// only set it if we actually need to...
+			// if they arent in the map or their current team doesnt match the requested one, then lets update it
+			auto it = TeamUtils::xuidToTeamMap.find(xuid);
+			if ((it == TeamUtils::xuidToTeamMap.end()) || (it->second != this->teamNumber)) {
 
-			// update reverse team map
-			for (const auto &pair : TeamUtils::xuidToTeamMap) {
-				TeamUtils::teamToXuidMap[pair.second].insert(pair.first);
+				// add xuid into main map
+				TeamUtils::xuidToTeamMap[xuid] = this->teamNumber;
+
+				// add team number into reverse team map
+				// recreating the whole map is really slow but otherwise the code gets really ugly trust me
+				TeamUtils::teamToXuidMap.clear();
+				for (const auto& pair : TeamUtils::xuidToTeamMap) {
+					TeamUtils::teamToXuidMap[pair.second].insert(pair.first);
+				}
 			}
 
 			teamStatusStr += "set to §a" + std::to_string(this->teamNumber) + "§r";
 			break;
 		}
 		case TeamAction::RESET: {
-			TeamUtils::xuidToTeamMap.erase(xuid);
+
+			// only reset it if we actually need to...
+			// if theyre not in map we can assume they already dont have a team and thus resetting would be pointless
+			auto it = TeamUtils::xuidToTeamMap.find(xuid);
+			if (it != TeamUtils::xuidToTeamMap.end()) {
+
+				// remove xuid from main map by iterator...
+				TeamUtils::xuidToTeamMap.erase(it);
+
+				TeamUtils::teamToXuidMap.clear();
+				for (const auto& pair : TeamUtils::xuidToTeamMap) {
+					TeamUtils::teamToXuidMap[pair.second].insert(pair.first);
+				}
+			}
+
 			teamStatusStr += "reset";
 			break;
 		}

@@ -25,6 +25,12 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 		}
 	}
 
+	// we love being stuck on c++17!
+	constexpr auto stringEndsWith = [](const std::string& str, std::string_view suffix) -> bool {
+		if (suffix.size() > str.size()) return false;
+		return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+	};
+
 	std::string listStr{};
 	for (const auto& xuidList : TeamUtils::teamToXuidMap) {
 
@@ -49,15 +55,15 @@ void TeamListCommand::execute(CommandOrigin const &origin, CommandOutput &output
 				}
 			}
 		}
-	}
 
-	// remove extra characters, "\n" in the front and ", " in the back
-	if (listStr.front() == '\n') {
-		listStr.erase(0, 1);
-	}
+		// remove extra characters, "\n" in the front and ", " in the back
+		if (listStr.front() == '\n') {
+			listStr.erase(0, 1);
+		}
 
-	if (listStr.substr(listStr.length() - 2) == ", ") {
-		listStr.erase(listStr.length() - 2, 2);
+		if (stringEndsWith(listStr, ", ")) {
+			listStr.erase(listStr.length() - 2, 2);
+		}
 	}
 
 	output.success(listStr);
