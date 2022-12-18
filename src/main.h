@@ -105,6 +105,7 @@ inline std::unordered_set<uint64_t> xuidsInTeamChat{}; // xuids who are in the t
 bool stringEndsWith(const std::string& str, std::string_view suffix); // we love being on c++17!
 void initializeTeamCommands(CommandRegistry *registry);
 bool isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid);
+bool isOnSameTeam(Player& thisPlayer, Player& thatPlayer);
 std::optional<int32_t> getTeamNumber(Player &player);
 void updateWhisperCommandSoftEnum();
 std::string getFormattedHealthAndPosString(Player &player);

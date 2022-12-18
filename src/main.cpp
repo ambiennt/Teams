@@ -41,6 +41,16 @@ bool TeamUtils::isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid) {
 	return (it1->second == it2->second);
 }
 
+bool TeamUtils::isOnSameTeam(Player& thisPlayer, Player& thatPlayer) {
+	auto thisEntry = PLAYER_DB.Find(&thisPlayer);
+	if (!thisEntry) { return false; } // should never be nullopt tbh but just to be safe
+
+	auto thatEntry = PLAYER_DB.Find(&thatPlayer);
+	if (!thatEntry) { return false; } // should never be nullopt tbh but just to be safe
+
+	return TeamUtils::isOnSameTeam(thisEntry->xuid, thatEntry->xuid);
+}
+
 std::optional<int32_t> TeamUtils::getTeamNumber(Player &player) {
 	auto dbIt = PLAYER_DB.Find(&player); // why is this not const...
 	if (dbIt) {
@@ -127,24 +137,13 @@ void TeamUtils::onPlayerChat(const Mod::PlayerEntry &entry, std::string &name, s
 
 // for child entity sources like projectiles
 TInstanceHook(bool, "?isInvulnerableTo@Player@@UEBA_NAEBVActorDamageSource@@@Z", Player, ActorDamageSource &source) {
-	if (source.getEntityType() == ActorType::Player_0) {
-
+	if (source.getEntityType() == ActorType::Player_0) {	
 		auto attacker = (Player*)(this->mLevel->fetchEntity(source.getEntityUniqueID(), false));
 		if (!attacker) {
 			return original(this, source);
 		}
 
-		auto targetEntry = PLAYER_DB.Find(this);
-		if (!targetEntry) { // should never be nullopt tbh but just to be safe
-			return original(this, source);
-		}
-
-		auto attackerEntry = PLAYER_DB.Find(attacker);
-		if (!attackerEntry) { // should never be nullopt tbh but just to be safe
-			return original(this, source);
-		}
-
-		if (TeamUtils::isOnSameTeam(targetEntry->xuid, attackerEntry->xuid)) {
+		if (TeamUtils::isOnSameTeam(*this, *attacker)) {
 			return true;
 		}
 	}
@@ -154,18 +153,8 @@ TInstanceHook(bool, "?isInvulnerableTo@Player@@UEBA_NAEBVActorDamageSource@@@Z",
 // for normal melee attacks
 TInstanceHook(void, "?attack@GameMode@@UEAA_NAEAVActor@@@Z", GameMode, Actor &target) {
 	if (target.isInstanceOfPlayer()) {
-
-		auto attackerEntry = PLAYER_DB.Find(this->mPlayer);
-		if (!attackerEntry) { // should never be nullopt tbh but just to be safe
-			return original(this, target);
-		}
-
-		auto targetEntry = PLAYER_DB.Find((Player*)&target);
-		if (!targetEntry) { // should never be nullopt tbh but just to be safe
-			return original(this, target);
-		}
-
-		if (TeamUtils::isOnSameTeam(attackerEntry->xuid, targetEntry->xuid)) {
+		auto& targetPlayer = *reinterpret_cast<Player*>(&target);
+		if (TeamUtils::isOnSameTeam(targetPlayer, *(this->mPlayer))) {
 			return;
 		}
 	}
