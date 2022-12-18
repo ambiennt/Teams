@@ -16,12 +16,15 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <map>
 #include <set>
+#include <optional>
 
 class TeamCommand : public Command {
 public:
-	enum class TeamAction : int8_t {
+	enum class TeamAction {
 		SET   = 0,
 		RESET = 1,
 	};
@@ -35,7 +38,7 @@ public:
 		this->selector.setIncludeDeadPlayers(true);
 	}
 
-	bool handleTeamAction(Player *player, CommandOutput &output, bool sendCommandFeedback);
+	bool handleTeamAction(Player &player, CommandOutput &output, bool sendCommandFeedback);
 	virtual void execute(CommandOrigin const &origin, CommandOutput &output) override;
 	static void setup(CommandRegistry *registry);
 };
@@ -74,6 +77,14 @@ public:
 	static void setup(CommandRegistry *registry);
 };
 
+class TeamChatCommand : public Command {
+	bool toggle;
+public:
+	TeamChatCommand() : toggle(true) {}
+
+	virtual void execute(CommandOrigin const &origin, CommandOutput &output) override;
+	static void setup(CommandRegistry *registry);
+};
 
 
 
@@ -89,11 +100,17 @@ inline constexpr const char* ABSORPTION_GLYPH  = "\ue1ff"; // , glyph 0xE1FF
 
 inline std::unordered_map<uint64_t, int32_t> xuidToTeamMap{}; // xuid to team number
 inline std::map<int32_t, std::unordered_set<uint64_t>> teamToXuidMap{}; // team number to list of xuids
+inline std::unordered_set<uint64_t> xuidsInTeamChat{}; // xuids who are in the team chat state (as opposed to global chat)
 
+bool stringEndsWith(const std::string& str, std::string_view suffix); // we love being on c++17!
 void initializeTeamCommands(CommandRegistry *registry);
 bool isOnSameTeam(uint64_t thisXuid, uint64_t thatXuid);
+std::optional<int32_t> getTeamNumber(Player &player);
 void updateWhisperCommandSoftEnum();
 std::string getFormattedHealthAndPosString(Player &player);
+void trySendTeamWhisper(const Mod::PlayerEntry &cmdExecutor, int32_t selfTeamNum, const std::string &chatMsg);
+void onPlayerChat(const Mod::PlayerEntry &entry, std::string &name, std::string &chatMsg, Mod::CallbackToken<std::string> &token);
+inline bool isInTeamChat(uint64_t xuid) { return TeamUtils::xuidsInTeamChat.count(xuid) > 0; }
 
 } // namespace TeamUtils
 

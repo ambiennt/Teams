@@ -1,38 +1,45 @@
 #include "../main.h"
 
 void ReplyCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
+	output.type = CommandOutputType::Normal;
 
-	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
+	if (origin.getOriginType() != CommandOriginType::Player) {
+		output.error("This command can only be executed by players");
+		return;
+	}
+
+	auto cmdExecutor = PLAYER_DB.Find(reinterpret_cast<Player*>(origin.getEntity()));
 	if (!cmdExecutor) return;
-	auto lastWhisperMessager = PLAYER_DB.Find(cmdExecutor->player->mEZPlayer->mLastWhisperMessagerXuid);
 
-	if (!lastWhisperMessager || (lastWhisperMessager->xuid == 0)) {
+	auto lastWhisperMsger = PLAYER_DB.Find(cmdExecutor->player->mEZPlayer->mLastWhisperMessagerXuid);
+	if (!lastWhisperMsger || (lastWhisperMsger->xuid == 0)) {
 		output.error(
 			"Reply failed! Either you do not have anyone to reply to, the last person who whispered to you is offline, or they are using an offline account");
-          return;
+		  return;
 	}
 
 	std::string actualMsg = this->msg.getMessage(origin);
-	if (actualMsg.length() <= 0) {
+	if (actualMsg.empty()) {
 		output.error("Reply messages must be at least 1 character long");
 		return;
 	}
 
+
+
+
+
 	auto toSelfReplyPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
-		"§e(To §a" + lastWhisperMessager->name + "§e): " + actualMsg);
+		"§e(To §a" + lastWhisperMsger->name + "§e): " + actualMsg);
 	auto toTargetReplyPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
 		"§e(From §a" + cmdExecutor->name + "§e): " + actualMsg);
-	PlaySoundPacket toTargetSoundPkt(std::string("random.orb"), lastWhisperMessager->player->getBlockPos(), 0.375f);
+	PlaySoundPacket toTargetSoundPkt("random.orb", lastWhisperMsger->player->getBlockPos(), 0.375f);
 
-	lastWhisperMessager->player->sendNetworkPacket(toTargetReplyPkt);
-	lastWhisperMessager->player->sendNetworkPacket(toTargetSoundPkt);
+	lastWhisperMsger->player->sendNetworkPacket(toTargetReplyPkt);
+	lastWhisperMsger->player->sendNetworkPacket(toTargetSoundPkt);
 	cmdExecutor->player->sendNetworkPacket(toSelfReplyPkt);
 
-
-
-
-	//LOGI("[%s -> %s] %s") % cmdExecutor->name % lastWhisperMessager->name % actualMsg;
-	Mod::Chat::logChat(cmdExecutor.value(), actualMsg, &lastWhisperMessager->name);
+	//LOGI("[%s -> %s] %s") % cmdExecutor->name % lastWhisperMsger->name % actualMsg;
+	Mod::Chat::logChat(*cmdExecutor, actualMsg, &(lastWhisperMsger->name));
 }
 
 void ReplyCommand::setup(CommandRegistry *registry) {

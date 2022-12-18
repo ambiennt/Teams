@@ -1,7 +1,6 @@
 #include "../main.h"
 
 void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output) {
-
 	output.type = CommandOutputType::Normal;
 
 	if (origin.getOriginType() != CommandOriginType::Player) {
@@ -9,7 +8,7 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 		return;
 	}
 
-	auto cmdExecutor = PLAYER_DB.Find((Player*)origin.getEntity());
+	auto cmdExecutor = PLAYER_DB.Find(reinterpret_cast<Player*>(origin.getEntity()));
 	if (!cmdExecutor) return;
 
 	if (this->specificName == cmdExecutor->name) {
@@ -17,41 +16,40 @@ void WhisperCommand::execute(CommandOrigin const &origin, CommandOutput &output)
 		return;
 	}
 
-	auto it = PLAYER_DB.Find(this->specificName);
-	if (!it) {
-		output.error("No player was found with the name: \"" + this->specificName + "\"");
-		return;
-	}
-	auto& target = *it->player;
-
 	std::string actualMsg = this->msg.getMessage(origin);
-	if (actualMsg.length() <= 0) {
+	if (actualMsg.empty()) {
 		output.error("Whisper messages must be at least 1 character long");
 		return;
 	}
 
-
-
-
-	auto toSelfWhisperPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
-		"§e(To §a" + target.mPlayerName + "§e): " + actualMsg);
-	auto toTargetWhisperPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
-		"§e(From §a" + cmdExecutor->name + "§e): " + actualMsg);
-	PlaySoundPacket toTargetSoundPkt(std::string("random.orb"), target.getBlockPos(), 0.375f);
-
-	if (cmdExecutor->xuid != 0) {
-		target.mEZPlayer->mLastWhisperMessagerXuid = cmdExecutor->xuid;
+	auto targetPlayerEntry = PLAYER_DB.Find(this->specificName);
+	if (!targetPlayerEntry) {
+		output.error("No player was found with the name: \"" + this->specificName + "\"");
+		return;
 	}
 
-	target.sendNetworkPacket(toTargetWhisperPkt);
-	target.sendNetworkPacket(toTargetSoundPkt);
+
+
+
+
+	auto& targetPlayer = *(targetPlayerEntry->player);
+
+	auto toSelfWhisperPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
+		"§e(To §a" + targetPlayerEntry->name + "§e): " + actualMsg);
+	auto toTargetWhisperPkt = TextPacket::createTextPacket<TextPacketType::SystemMessage>(
+		"§e(From §a" + cmdExecutor->name + "§e): " + actualMsg);
+	PlaySoundPacket toTargetSoundPkt("random.orb", targetPlayer.getBlockPos(), 0.375f);
+
+	if (cmdExecutor->xuid != 0) {
+		targetPlayer.mEZPlayer->mLastWhisperMessagerXuid = cmdExecutor->xuid;
+	}
+
+	targetPlayer.sendNetworkPacket(toTargetWhisperPkt);
+	targetPlayer.sendNetworkPacket(toTargetSoundPkt);
 	cmdExecutor->player->sendNetworkPacket(toSelfWhisperPkt);
 
-
-
-
-	//LOGI("[%s -> %s] %s") % cmdExecutor->name % target.mPlayerName % actualMsg;
-	Mod::Chat::logChat(cmdExecutor.value(), actualMsg, &target.mPlayerName);
+	//LOGI("[%s -> %s] %s") % cmdExecutor->name % it->name % actualMsg;
+	Mod::Chat::logChat(*cmdExecutor, actualMsg, &(targetPlayerEntry->name));
 }
 
 void WhisperCommand::setup(CommandRegistry *registry) {
